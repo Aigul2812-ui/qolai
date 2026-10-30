@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QolAI</title>
+<meta name="description" content="QolAI">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --paper:#ECE7DD; --paper-dark:#DFD9C9; --card:#F7F4EC; --ink:#22271F; --ink-soft:#5B6152;
+    --border:#CBC2AC; --green:#3F6B3A; --green-soft:#E4ECDE; --amber:#B8712E; --amber-soft:#F3E4D2;
+    --slate:#3F5468; --slate-soft:#E2E8ED; --rust:#9C4A32;
+    --font-display:'Bricolage Grotesque', sans-serif; --font-body:'Inter', sans-serif; --font-mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); -webkit-font-smoothing:antialiased;}
+  ::placeholder{color:#9a9484;}
+  button{font-family:var(--font-body); cursor:pointer;}
+  select,input,textarea{font-family:var(--font-body);}
+  button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible{outline:2px solid var(--slate); outline-offset:1px;}
+
+  header{border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--paper); z-index:10;}
+  .header-inner{max-width:1080px; margin:0 auto; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px 16px; flex-wrap:wrap;}
+  .logo-row{display:flex; align-items:center; gap:10px;}
+  .logo-badge{width:34px; height:34px; border-radius:8px; background:var(--ink); color:var(--paper); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:900; font-size:16px;}
+  .logo-text{font-family:var(--font-display); font-weight:900; font-size:20px; letter-spacing:-0.3px;}
+  .logo-text span{color:var(--amber);}
+
+  .region-row{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-soft); flex-wrap:wrap;}
+  .toggle-btn{border:none; background:transparent; color:var(--ink-soft); padding:5px 10px; border-radius:999px; font-size:13px; font-weight:500;}
+  .toggle-btn.toggle-active{background:var(--ink); color:var(--paper);}
+
+  .right-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .card-btn{display:flex; align-items:center; gap:6px; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:#fff; font-size:13px; font-weight:600; color:var(--ink);}
+  .mode-group, .lang-group{display:flex; border-radius:10px; border:1px solid var(--border); overflow:hidden;}
+  .mode-btn{padding:8px 14px; border:none; background:#fff; color:var(--ink-soft); font-size:13px; font-weight:600;}
+  .mode-btn.mode-active.mode-client{background:var(--slate); color:#fff;}
+  .mode-btn.mode-active.mode-worker{background:var(--amber); color:#fff;}
+  .lang-btn{padding:8px 10px; border:none; background:#fff; color:var(--ink-soft); font-size:12px; font-weight:700;}
+  .lang-btn.lang-active{background:var(--ink); color:var(--paper);}
+
+  .cat-row{max-width:1080px; margin:0 auto; padding:14px 20px 0; display:flex; gap:8px; overflow-x:auto;}
+  .pill{display:flex; align-items:center; gap:6px; padding:7px 12px; border-radius:999px; border:1px solid var(--border); background:transparent; color:var(--ink-soft); font-size:13px; font-weight:500; white-space:nowrap; transition:all .15s ease;}
+  .pill.pill-active{border-color:var(--ink); background:var(--ink); color:var(--paper);}
+
+  .flash-row{max-width:1080px; margin:10px auto 0; padding:0 20px; display:none;}
+  .flash{background:var(--green-soft); color:var(--green); padding:8px 14px; border-radius:8px; font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:6px;}
+
+  main{max-width:1080px; margin:0 auto; padding:16px 20px 60px;}
+  .grid{display:grid; grid-template-columns:1fr; gap:20px;}
+  @media (min-width:860px){ .grid{grid-template-columns:1.6fr 1fr; align-items:start;} }
+
+  .empty-msg{color:var(--ink-soft); font-size:14px; padding:24px 0;}
+
+  .task-card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; cursor:pointer; margin-bottom:12px;}
+  .task-card.task-card-sel{border-color:var(--ink); box-shadow:0 2px 0 0 var(--ink);}
+  .task-card-top{display:flex; justify-content:space-between; gap:10px;}
+  .task-card-main{flex:1; min-width:0;}
+  .task-card-meta{display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft);}
+  .tag{font-size:11px; padding:1px 7px; border-radius:999px; font-weight:600;}
+  .tag-slate{background:var(--slate-soft); color:var(--slate);}
+  .tag-green{background:var(--green-soft); color:var(--green);}
+  .task-card-title{font-family:var(--font-display); font-weight:700; font-size:16px; line-height:1.3;}
+  .task-card-price{text-align:right; flex-shrink:0;}
+  .price-mono{font-family:var(--font-mono); font-weight:600; font-size:18px;}
+  .bids-hint{font-size:11px; color:var(--ink-soft); margin-top:2px;}
+
+  .side-panel .panel-inner{position:sticky; top:90px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px;}
+  .panel-title{font-family:var(--font-display); font-weight:700; font-size:16px; display:flex; align-items:center; gap:6px;}
+  .panel-sub{font-size:12px; color:var(--ink-soft); margin:2px 0 12px;}
+  .form-col{display:flex; flex-direction:column; gap:10px;}
+  .label{font-size:12px; color:var(--ink-soft); font-weight:600; display:block; margin-bottom:4px;}
+  .input{width:100%; padding:9px 11px; border-radius:8px; border:1px solid var(--border); background:#fff; font-size:14px; color:var(--ink); outline:none;}
+  .input.mono{font-family:var(--font-mono);}
+  .textarea{min-height:64px; resize:vertical;}
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .btn-primary{margin-top:4px; padding:11px 14px; border-radius:8px; border:none; background:var(--ink); color:var(--paper); font-weight:700; font-size:14px;}
+  .btn-amber{display:flex; align-items:center; justify-content:center; gap:6px; padding:11px 14px; border-radius:8px; border:none; background:var(--amber); color:#fff; font-weight:700; font-size:14px;}
+  .btn-small{font-size:12px; font-weight:600; border:none; background:var(--ink); color:var(--paper); padding:6px 10px; border-radius:6px;}
+  .quick-row{display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;}
+  .chip-btn{font-size:11px; border:1px solid var(--border); background:#fff; border-radius:999px; padding:3px 9px;}
+  .muted{font-size:13px; color:var(--ink-soft);}
+  .panel-hint{color:var(--ink-soft); font-size:14px;}
+
+  .bids-title{font-size:13px; font-weight:600; margin-bottom:8px;}
+  .bids-list{display:flex; flex-direction:column; gap:8px;}
+  .bid-row{border:1px solid var(--border); border-radius:8px; padding:10px; background:#fff;}
+  .bid-row.bid-accepted{border-color:var(--green); background:var(--green-soft);}
+  .bid-row-top{display:flex; justify-content:space-between; align-items:center;}
+  .bid-worker{font-weight:600; font-size:13px;}
+  .delta{display:inline-flex; align-items:center; gap:4px; font-family:var(--font-mono); font-size:12px; font-weight:600; padding:2px 8px; border-radius:999px;}
+  .delta-neutral{color:var(--ink-soft); background:var(--paper-dark);}
+  .delta-good{color:var(--green); background:var(--green-soft);}
+  .delta-bad{color:var(--rust); background:var(--amber-soft);}
+  .bid-amount{font-size:15px; margin:4px 0; font-family:var(--font-mono);}
+  .bid-note{font-size:12px; color:var(--ink-soft); margin-bottom:6px;}
+  .accepted-mark{font-size:12px; color:var(--green); font-weight:600;}
+
+  .detail-top{display:flex; justify-content:space-between; align-items:flex-start;}
+  .detail-sub{font-size:13px; color:var(--ink-soft); margin-bottom:8px;}
+  .detail-budget{font-size:20px; font-weight:600; margin-bottom:4px; font-family:var(--font-mono);}
+  .detail-payment{font-size:12px; color:var(--ink-soft); margin-bottom:14px; display:flex; align-items:center; gap:4px;}
+
+  .icon-btn{background:none; border:none; color:var(--ink-soft);}
+  .icon-btn.danger{color:var(--rust);}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(34,39,31,0.45); display:none; align-items:center; justify-content:center; padding:16px; z-index:50;}
+  .modal{background:var(--card); border-radius:14px; padding:20px; width:100%; max-width:380px; max-height:90vh; overflow-y:auto;}
+  .modal-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .card-list{display:flex; flex-direction:column; gap:8px; margin-bottom:16px;}
+  .card-row{display:flex; align-items:center; justify-content:space-between; border:1px solid var(--border); border-radius:8px; padding:8px 10px;}
+  .card-row-main{background:none; border:none; text-align:left; flex:1; display:flex; align-items:center; gap:8px; color:var(--ink);}
+  .card-row-title{font-size:13px; font-weight:600;}
+  .default-tag{font-size:10px; color:var(--green); font-weight:600;}
+  .card-row-sub{font-size:11px; color:var(--ink-soft);}
+  .card-preview{background:linear-gradient(135deg, var(--slate), var(--ink)); border-radius:12px; padding:16px; color:#fff; margin-bottom:14px; font-family:var(--font-mono);}
+  .preview-number{font-size:15px; letter-spacing:2px; margin-bottom:18px;}
+  .preview-row{display:flex; justify-content:space-between; font-size:11px; opacity:0.85;}
+  .error-text{font-size:12px; color:var(--rust);}
+  .fine-print{font-size:11px; color:var(--ink-soft); line-height:1.4;}
+  .offer-body p{font-size:13px; line-height:1.5; margin:0 0 10px;}
+  .offer-body p.offer-commission{background:var(--amber-soft); border-radius:8px; padding:10px 12px; font-weight:600;}
+
+  .pyatak-badge{font-size:12px; color:var(--amber); font-weight:700; margin-left:2px;}
+  .divider{border-top:1px solid var(--border); margin:16px 0;}
+  .pyatak-widget{margin-bottom:2px;}
+  .pyatak-list{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
+  .pyatak-row{display:flex; justify-content:space-between; align-items:center; gap:8px; background:var(--amber-soft); border-radius:8px; padding:8px 10px;}
+  .pyatak-row-main{min-width:0;}
+  .pyatak-name{font-weight:600; font-size:13px;}
+  .pyatak-meta{font-size:11px; color:var(--ink-soft);}
+  .pyatak-box{margin-top:16px; padding-top:16px; border-top:1px solid var(--border);}
+  .pyatak-status{background:var(--green-soft); color:var(--green); padding:10px; border-radius:8px; font-size:13px; margin-bottom:10px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-inner">
+      <div class="logo-row">
+        <div class="logo-badge">Q</div>
+        <div class="logo-text">Qol<span>AI</span></div>
+      </div>
+      <div class="region-row">
+        <span>&#128205;</span>
+        <span data-i18n="regionLabel"></span>
+        <span id="pyatakBadge" class="pyatak-badge"></span>
+      </div>
+      <div class="right-row">
+        <button id="offerHeaderBtn" class="card-btn" onclick="openOfferModal()">
+          <span id="offerHeaderIcon"></span>
+          <span data-i18n="offerBtn"></span>
+        </button>
+        <button id="cardHeaderBtn" class="card-btn" onclick="openCardModal()">
+          <span id="cardHeaderIcon"></span>
+          <span id="cardHeaderLabel"></span>
+        </button>
+        <div class="mode-group">
+          <button id="modeClientBtn" class="mode-btn mode-client mode-active" data-i18n="modeClient" onclick="setMode('client')"></button>
+          <button id="modeWorkerBtn" class="mode-btn mode-worker" data-i18n="modeWorker" onclick="setMode('worker')"></button>
+        </div>
+        <div class="lang-group" role="group" aria-label="Language">
+          <button class="lang-btn" data-lang="kk" onclick="setLang('kk')">Қаз</button>
+          <button class="lang-btn" data-lang="ru" onclick="setLang('ru')">Рус</button>
+          <button class="lang-btn" data-lang="en" onclick="setLang('en')">Eng</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div id="catRow" class="cat-row"></div>
+  <div id="flashRow" class="flash-row"></div>
+
+  <main>
+    <div class="grid">
+      <div id="feed" class="feed"></div>
+      <div class="side-panel"><div id="sidePanel"></div></div>
+    </div>
+  </main>
+
+  <div id="cardModalOverlay" class="modal-overlay" onclick="closeCardModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <div class="panel-title" style="margin:0" data-i18n="payMethods"></div>
+        <button class="icon-btn" onclick="closeCardModal()" id="cardModalCloseBtn"></button>
+      </div>
+      <div id="cardListBox"></div>
+      <div class="card-preview">
+        <div id="previewNumber" class="preview-number">•••• •••• •••• ••••</div>
+        <div class="preview-row">
+          <span id="previewName"></span>
+          <span id="previewExpiry"></span>
+        </div>
+      </div>
+      <div class="form-col">
+        <div>
+          <label class="label" data-i18n="cardNumber"></label>
+          <input id="cardNumber" class="input" placeholder="0000 0000 0000 0000" maxlength="19" inputmode="numeric" autocomplete="off" oninput="onCardNumberInput()">
+        </div>
+        <div class="two-col">
+          <div>
+            <label class="label" data-i18n="cardExpiry"></label>
+            <input id="cardExpiry" class="input" data-i18n-ph="cardExpiryPh" maxlength="5" inputmode="numeric" autocomplete="off" oninput="onCardExpiryInput()">
+          </div>
+          <div>
+            <label class="label">CVC</label>
+            <input id="cardCvc" type="password" class="input" placeholder="123" maxlength="3" inputmode="numeric" autocomplete="off" oninput="onCardCvcInput()">
+          </div>
+        </div>
+        <div>
+          <label class="label" data-i18n="cardName"></label>
+          <input id="cardName" class="input" placeholder="IVAN IVANOV" autocomplete="off" oninput="updateCardPreview()">
+        </div>
+        <div id="cardError" class="error-text"></div>
+        <button class="btn-primary" data-i18n="cardLink" onclick="addCard()"></button>
+        <div class="fine-print" data-i18n="cardFinePrint"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="offerModalOverlay" class="modal-overlay" onclick="closeOfferModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <div class="panel-title" style="margin:0" data-i18n="offerTitle"></div>
+        <button class="icon-btn" onclick="closeOfferModal()" id="offerModalCloseBtn"></button>
+      </div>
+      <div id="offerBodyBox" class="offer-body"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* =====================================================================
+   i18n: Қазақша / Русский / English
+   ===================================================================== */
+const LANGS = ["kk", "ru", "en"];
+const LOCALE = { ru: "ru-RU", kk: "kk-KZ", en: "en-US" };
+const N = (ru, kk, en) => ({ ru: ru, kk: kk, en: en });
+
+const I18N = {
+  docTitle: N("QolAI — доска задач Алматинской области", "QolAI — Алматы облысының тапсырмалар тақтасы", "QolAI — task board for Almaty Region"),
+  docDesc: N(
+    "QolAI — сервис для поиска и заказа любой работы в Алматинской области: мастера, разнорабочие, домашние услуги. Заказчик называет цену, исполнитель соглашается или предлагает свою.",
+    "QolAI — Алматы облысында кез келген жұмысты табу және тапсыру сервисі: шеберлер, көмекші жұмысшылар, үй қызметтері. Тапсырыс беруші бағаны атайды, орындаушы келіседі немесе өз бағасын ұсынады.",
+    "QolAI — a service for finding and ordering any kind of work in Almaty Region: skilled trades, laborers, home services. The client names a price; the worker accepts or offers their own."
+  ),
+  regionLabel: N("Алматинская область", "Алматы облысы", "Almaty Region"),
+  offerBtn: N("Оферта", "Оферта", "Offer"),
+  offerTitle: N("Публичная оферта", "Жалпы оферта", "Public offer"),
+  offerP1: N(
+    "Настоящий документ является публичной офертой (предложением) сервиса QolAI — доски задач по поиску и заказу исполнителей в Алматинской области. Начиная пользоваться сервисом, заказчик или исполнитель считается согласившимся с условиями настоящей оферты в полном объёме.",
+    "Бұл құжат — Алматы облысында орындаушы табу және тапсыру тапсырмалар тақтасы QolAI сервисінің публичтік офертасы (ұсынысы). Сервисті пайдалануды бастаған сәттен бастап тапсырыс беруші немесе орындаушы осы оферта шарттарына толық келіскен деп танылады.",
+    "This document is the public offer of QolAI — the task board for finding and ordering workers in Almaty Region. By using the service, the client or the worker is deemed to have accepted the terms of this offer in full."
+  ),
+  offerP2: N(
+    "Комиссия сервиса составляет 5% от суммы оплаты за выполненную задачу. Комиссия удерживается из суммы оплаты перед передачей средств исполнителю: заказчик платит согласованную цену, исполнитель получает 95% от неё.",
+    "Сервистің комиссиясы — орындалған тапсырма үшін төлем сомасының 5%-ы. Комиссия төлем сомасынан орындаушыға ақша жеткізілмей тұрып ұсталады: тапсырыс беруші келісілген бағаны төлейді, орындаушы оның 95%-ын алады.",
+    "The service fee is 5% of the payment for a completed task. The fee is withheld from the payment before the funds are transferred to the worker: the client pays the agreed price, and the worker receives 95% of it."
+  ),
+  offerP3: N(
+    "Комиссия начисляется автоматически после подтверждения заказчиком завершения задачи. Если задача не выполнена или стороны расторгли договор, комиссия не взимается.",
+    "Комиссия тапсырыс беруші тапсырманы аяқталғанын растаған соң автоматты түрде алынады. Егер тапсырма орындалмаса немесе тараптар келісімнен бас тартса, комиссия алынбайды.",
+    "The fee is charged automatically after the client confirms the task is complete. If the task is not completed or the parties cancel the agreement, no fee is charged."
+  ),
+  offerP4: N(
+    "Условия оферты могут быть изменены сервисом. Изменения публикуются в приложении и вступают в силу с момента публикации. Продолжая пользоваться сервисом после публикации изменений, пользователь подтверждает согласие с новыми условиями.",
+    "Оферта шарттарын сервис өзгертуі мүмкін. Өзгерістер қосымшада жарияланады және жарияланған сәттен күшіне енеді. Өзгерістер жарияланғаннан кейін сервисті пайдалануды жалғастырған қолданушы жаңа шарттарға келісетінін растайды.",
+    "The terms of this offer may be changed by the service. Changes are published in the app and take effect upon publication. By continuing to use the service after changes are published, you confirm your agreement to the new terms."
+  ),
+  cardLink: N("Привязать карту", "Картаны байлау", "Link card"),
+  modeClient: N("Мне нужна работа", "Орындаушы іздеймін", "I need work done"),
+  modeWorker: N("Хочу работать", "Жұмыс істегім келеді", "I want to work"),
+  catAll: N("Всё", "Барлығы", "All"),
+  emptyFeed: N(
+    "Пока нет задач в этой категории и районе — станьте первым, кто разместит объявление.",
+    "Бұл санат пен аймақта әзірге тапсырма жоқ — алғашқы болып хабарландыру орналастырыңыз.",
+    "No tasks in this category and area yet — be the first to post one."
+  ),
+  tagMine: N("моя задача", "менің тапсырмам", "my task"),
+  tagClosed: N("исполнитель найден", "орындаушы табылды", "worker found"),
+  selectTaskTitle: N("Выберите задачу из списка", "Тізімнен тапсырманы таңдаңыз", "Pick a task from the list"),
+  selectTaskText: N(
+    "Нажмите на любое объявление в списке — сможете принять цену заказчика или предложить свою.",
+    "Тізімдегі кез келген хабарландыруды басыңыз — тапсырыс берушінің бағасымен келісе аласыз немесе өз бағаңызды ұсына аласыз.",
+    "Tap any listing — you can accept the client's price or offer your own."
+  ),
+  budget: N("Бюджет:", "Бюджет:", "Budget:"),
+  payment: N("Оплата:", "Төлем:", "Payment:"),
+  payCash: N("Наличными", "Қолма-қол", "Cash"),
+  noDesc: N("Без описания", "Сипаттамасыз", "No description"),
+  bidsTitle: N("Ставки исполнителей ({0})", "Орындаушылардың ұсыныстары ({0})", "Worker bids ({0})"),
+  noBids: N("Пока никто не откликнулся.", "Әзірге ешкім жауап берген жоқ.", "No responses yet."),
+  atBudget: N("по цене", "баға бойынша", "at budget"),
+  accept: N("Принять", "Қабылдау", "Accept"),
+  selected: N("✓ выбран", "✓ таңдалды", "✓ selected"),
+  yourResponse: N("Ваш отклик", "Сіздің жауабыңыз", "Your response"),
+  yourName: N("Ваше имя", "Атыңыз", "Your name"),
+  namePh: N("Например: Ерлан", "Мысалы: Ерлан", "e.g. Yerlan"),
+  yourPrice: N("Ваша цена, ₸", "Сіздің бағаңыз, ₸", "Your price, ₸"),
+  okWith: N("согласен на {0}", "{0} бағасына келісемін", "OK with {0}"),
+  cheaper15: N("дешевле на 15%", "15%-ға арзанырақ", "15% cheaper"),
+  commentOpt: N("Комментарий (необязательно)", "Пікір (міндетті емес)", "Comment (optional)"),
+  commentPh: N("Опыт, сроки, гарантия", "Тәжірибе, мерзім, кепілдік", "Experience, timing, warranty"),
+  sendBid: N("Отправить ставку", "Ұсыныс жіберу", "Send bid"),
+
+  flashBidSent: N("Ставка отправлена заказчику", "Ұсыныс тапсырыс берушіге жіберілді", "Bid sent to the client"),
+  flashAccepted: N("Исполнитель выбран", "Орындаушы таңдалды", "Worker selected"),
+  flashNeedNamePrice: N("Укажите имя и цену", "Атыңыз бен бағаны көрсетіңіз", "Enter your name and price"),
+  flashNeedTitlePrice: N("Заполните название и цену", "Атауы мен бағасын толтырыңыз", "Fill in the title and price"),
+  flashNeedSettlement: N("Укажите название посёлка", "Елді мекен атауын көрсетіңіз", "Enter the settlement name"),
+  flashTaskPosted: N("Задача размещена на доске", "Тапсырма тақтаға орналастырылды", "Task posted to the board"),
+  flashCardLinked: N("Карта привязана", "Карта байланды", "Card linked"),
+  flashNeedName: N("Введите имя", "Атыңызды енгізіңіз", "Enter your name"),
+  flashPyIn: N("Вы вышли на пятак", "Сіз «Пятакқа» шықтыңыз", "You are on the Pyatak"),
+  flashPyOut: N("Вы ушли с пятака", "Сіз «Пятактан» кеттіңіз", "You left the Pyatak"),
+  flashPrefilled: N("Форма предзаполнена для {0}", "Форма {0} үшін толтырылды", "Form prefilled for {0}"),
+
+  postTitle: N("Разместить задачу", "Тапсырма орналастыру", "Post a task"),
+  postSub: N(
+    "Укажите цену, которую готовы заплатить — исполнители смогут согласиться или предложить свою.",
+    "Төлеуге дайын бағаны көрсетіңіз — орындаушылар келісе алады немесе өз бағасын ұсына алады.",
+    "Set the price you're ready to pay — workers can accept or offer their own."
+  ),
+  whatToDo: N("Что нужно сделать", "Не істеу керек", "What needs to be done"),
+  whatToDoPh: N("Например: почистить кондиционер", "Мысалы: кондиционерді тазалау", "e.g. clean an air conditioner"),
+  category: N("Категория", "Санат", "Category"),
+  region: N("Регион", "Аймақ", "Region"),
+  oblastDistrict: N("Район области", "Облыс ауданы", "Region district"),
+  settlement: N("Село / посёлок", "Ауыл / кент", "Village / settlement"),
+  otherSpecify: N("Другой (указать)…", "Басқа (көрсету)…", "Other (specify)…"),
+  otherPh: N("Впишите название своего села или посёлка", "Ауылыңыздың немесе кентіңіздің атын жазыңыз", "Type the name of your village or settlement"),
+  centerWord: N("центр", "орталық", "center"),
+  centerShort: N("ц. {0}", "орталығы {0}", "center: {0}"),
+  payMethod: N("Способ оплаты", "Төлем тәсілі", "Payment method"),
+  payAdd: N("+ Привязать новую карту", "+ Жаңа карта байлау", "+ Link a new card"),
+  details: N("Детали (необязательно)", "Мәліметтер (міндетті емес)", "Details (optional)"),
+  detailsPh: N("Адрес, сроки, важные детали", "Мекенжай, мерзім, маңызды мәліметтер", "Address, timing, important details"),
+  postBtn: N("Разместить на доске", "Тақтаға орналастыру", "Post to the board"),
+
+  pyWidgetTitle: N("На пятаке сейчас — {0}", "Қазір «Пятакта» — {0}", "On the Pyatak now — {0}"),
+  pyWidgetSub: N(
+    "Те, кто отметился как доступный прямо сейчас — не нужно ждать ставок, можно сразу позвать.",
+    "Дәл қазір қолжетімді деп белгілегендер — ұсыныстарды күтудің қажеті жоқ, бірден шақыруға болады.",
+    "People who marked themselves available right now — no need to wait for bids, you can call them right away."
+  ),
+  pyNobody: N("Пока никто не отметился поблизости.", "Жақын маңда әзірге ешкім белгіленген жоқ.", "Nobody has checked in nearby yet."),
+  pyCall: N("Позвать", "Шақыру", "Call"),
+  pySince: N("вышел {0}", "{0} шықты", "since {0}"),
+  pyBoxTitle: N("Пятак онлайн", "Пятак онлайн", "Pyatak online"),
+  pyBoxSub: N(
+    "Отметьтесь как доступный прямо сейчас — заказчики увидят, что рядом есть кто выйти сегодня, без ожидания ставок.",
+    "Дәл қазір қолжетімдімін деп белгіленіңіз — тапсырыс берушілер жақын маңда бүгін жұмысқа шыға алатын адам бар екенін ұсыныстарды күтпей-ақ көреді.",
+    "Mark yourself as available right now — clients will see someone nearby can start today, with no waiting for bids."
+  ),
+  pyStatus: N("Вы на пятаке: {0} · {1} · с {2}", "Сіз «Пятактасыз»: {0} · {1} · {2} бері", "You're on the Pyatak: {0} · {1} · since {2}"),
+  pyLeave: N("Уйти с пятака", "Пятактан кету", "Leave the Pyatak"),
+  pyJoin: N("Выйти на пятак", "Пятакқа шығу", "Go to the Pyatak"),
+  pyDistrictOblast: N("Район (область)", "Аудан (облыс)", "District (region)"),
+  pyBadge: N("{0} на пятаке", "Пятакта {0}", "{0} on the Pyatak"),
+  pyUrgent: N("Срочная работа для {0}", "{0} үшін шұғыл жұмыс", "Urgent job for {0}"),
+
+  payMethods: N("Способы оплаты", "Төлем тәсілдері", "Payment methods"),
+  defaultTag: N("основная", "негізгі", "default"),
+  validUntil: N("до {0}", "{0} дейін", "until {0}"),
+  previewName: N("ИМЯ ФАМИЛИЯ", "АТЫ ТЕГІ", "NAME SURNAME"),
+  previewExpiry: N("ММ/ГГ", "АА/ЖЖ", "MM/YY"),
+  cardNumber: N("Номер карты", "Карта нөмірі", "Card number"),
+  cardExpiry: N("Срок (ММ/ГГ)", "Мерзімі (АА/ЖЖ)", "Expiry (MM/YY)"),
+  cardExpiryPh: N("12/28", "12/28", "12/28"),
+  cardName: N("Имя держателя карты", "Карта иесінің аты", "Cardholder name"),
+  netCard: N("Карта", "Карта", "Card"),
+  errNumber: N("Проверьте номер карты — должно быть 16 цифр", "Карта нөмірін тексеріңіз — 16 сан болуы керек", "Check the card number — it must have 16 digits"),
+  errExpiry: N("Проверьте срок действия (ММ/ГГ)", "Жарамдылық мерзімін тексеріңіз (АА/ЖЖ)", "Check the expiry date (MM/YY)"),
+  errCvc: N("CVC должен содержать 3 цифры", "CVC 3 саннан тұруы керек", "CVC must have 3 digits"),
+  errName: N("Укажите имя держателя карты", "Карта иесінің атын көрсетіңіз", "Enter the cardholder name"),
+  cardFinePrint: N(
+    "Демо-форма: данные карты хранятся только в памяти браузера и никуда не передаются. В реальном приложении ввод и хранение карт должны идти через PCI DSS-сертифицированный платёжный шлюз (например, Kaspi Pay, CloudPayments, Stripe), а не напрямую на сервере или в браузере.",
+    "Демо-форма: карта деректері тек браузер жадында сақталады және ешқайда жіберілмейді. Нақты қосымшада карталарды енгізу мен сақтау серверде немесе браузерде тікелей емес, PCI DSS сертификатталған төлем шлюзі (мысалы, Kaspi Pay, CloudPayments, Stripe) арқылы жүруі керек.",
+    "Demo form: card data is kept only in browser memory and is not sent anywhere. In a real app, card entry and storage must go through a PCI DSS-certified payment gateway (e.g. Kaspi Pay, CloudPayments, Stripe), not directly on your server or in the browser."
+  )
+};
+
+/* ---------- state ---------- */
+const state = {
+  lang: "ru",
+  tasks: [],
+  region: "oblast",
+  catFilter: "all",
+  selectedId: null,
+  mode: "client",
+  cards: [],
+  defaultCardId: null,
+  flashTimeout: null,
+  pyatak: [],
+  myPyatakId: null
+};
+
+function t(key) {
+  const e = I18N[key];
+  if (!e) return key;
+  let s = e[state.lang] || e.ru;
+  for (let i = 1; i < arguments.length; i++) s = s.split("{" + (i - 1) + "}").join(arguments[i]);
+  return s;
+}
+/* localized value: either {ru,kk,en} object (demo data) or plain string (user input) */
+function L(x) { return x && typeof x === "object" ? (x[state.lang] || x.ru) : (x == null ? "" : x); }
+
+/* =====================================================================
+   data
+   ===================================================================== */
+const CATEGORIES = [
+  { id: "master", label: N("Мастера", "Шеберлер", "Skilled trades"), icon: "wrench" },
+  { id: "labor", label: N("Разнорабочие", "Көмекші жұмысшылар", "Laborers"), icon: "hardhat" },
+  { id: "home", label: N("Домашние услуги", "Үй қызметтері", "Home services"), icon: "home" },
+  { id: "other", label: N("Всё остальное", "Басқасы", "Other"), icon: "users" }
+];
+function catLabel(id) { const c = CATEGORIES.find(x => x.id === id); return c ? L(c.label) : ""; }
+
+/* Все 9 районов Алматинской области (после разделения региона на Алматинскую
+   область и область Жетысу в 2022-2023 гг.) с административными центрами и
+   крупнейшими сёлами/посёлками. Официально в области 380 населённых пунктов —
+   в выпадающем списке они не уместятся, поэтому даны крупнейшие пункты +
+   «Другой (указать)» со свободным полем ввода. */
+const S = (ru, kk, en, isCenter) => ({ n: N(ru, kk, en), center: !!isCenter });
+const OBLAST_DISTRICTS = [
+  { id: "talgar", n: N("Талгарский район", "Талғар ауданы", "Talgar district"), center: N("Талгар", "Талғар", "Talgar"),
+    settlements: [S("Талгар", "Талғар", "Talgar", 1), S("Бесагаш", "Бесағаш", "Besagash"), S("Гульдала", "Гүлдала", "Guldala"),
+      S("Кемертоган", "Кемертоған", "Kemertogan"), S("Иргели", "Іргелі", "Irgeli"), S("Акдала", "Ақдала", "Akdala"),
+      S("Кендала", "Кендала", "Kendala"), S("Еламан", "Еламан", "Yelaman"), S("Киши Байсерке", "Кіші Байсерке", "Kishi Baiserke")] },
+  { id: "enbek", n: N("Енбекшиказахский район", "Еңбекшіқазақ ауданы", "Enbekshikazakh district"), center: N("Есик", "Есік", "Yesik"),
+    settlements: [S("Есик", "Есік", "Yesik", 1), S("Тургень", "Түрген", "Turgen"), S("Кырбалтабай", "Қырбалтабай", "Kyrbaltabay"),
+      S("Ават", "Ават", "Avat"), S("Жанашар", "Жаңашар", "Zhanashar"), S("Байдибек би", "Байдібек би", "Baidibek bi"),
+      S("Каражота", "Қаражота", "Karazhota"), S("Акши", "Ақши", "Akshi")] },
+  { id: "karasay", n: N("Карасайский район", "Қарасай ауданы", "Karasay district"), center: N("Каскелен", "Қаскелең", "Kaskelen"),
+    settlements: [S("Каскелен", "Қаскелең", "Kaskelen", 1), S("Шамалган", "Шамалған", "Shamalgan"), S("Кыргауылды", "Қырғауылды", "Kyrgauldy"),
+      S("Таусамалы", "Таусамалы", "Tausamaly"), S("Рахат", "Рахат", "Rakhat"), S("Коктобе", "Көктөбе", "Koktobe"),
+      S("Тастыбулак", "Тастыбұлақ", "Tastybulak"), S("Райымбек", "Райымбек", "Raiymbek"), S("Жибек Жолы", "Жібек жолы", "Zhibek Zholy")] },
+  { id: "iliy", n: N("Илийский район", "Іле ауданы", "Ili district"), center: N("Отеген-Батыр", "Өтеген батыр", "Otegen Batyr"),
+    settlements: [S("Отеген-Батыр", "Өтеген батыр", "Otegen Batyr", 1), S("Боралдай", "Боралдай", "Boraldai"), S("Байсерке", "Байсерке", "Baiserke"),
+      S("Карасу", "Қарасу", "Karasu"), S("Первомайский", "Первомай", "Pervomaiskiy"), S("Чапаево", "Чапаев", "Chapaevo"),
+      S("Жетыген", "Жетіген", "Zhetygen")] },
+  { id: "zhambyl", n: N("Жамбылский район", "Жамбыл ауданы", "Zhambyl district"), center: N("Узынагаш", "Ұзынағаш", "Uzynagash"),
+    settlements: [S("Узынагаш", "Ұзынағаш", "Uzynagash", 1), S("Шилибастау", "Шілібастау", "Shilibastau"),
+      S("Танбалытас", "Таңбалытас", "Tanbalytas"), S("Аркарлы", "Арқарлы", "Arkarly")] },
+  { id: "balkhash", n: N("Балхашский район", "Балқаш ауданы", "Balkhash district"), center: N("Баканас", "Бақанас", "Bakanas"),
+    settlements: [S("Баканас", "Бақанас", "Bakanas", 1), S("Акжар", "Ақжар", "Akzhar"), S("Бояулы", "Бояулы", "Boyauly"),
+      S("Миялы", "Миялы", "Miyaly")] },
+  { id: "kegen", n: N("Кегенский район", "Кеген ауданы", "Kegen district"), center: N("Кеген", "Кеген", "Kegen"),
+    settlements: [S("Кеген", "Кеген", "Kegen", 1)] },
+  { id: "raiymbek", n: N("Райымбекский район", "Райымбек ауданы", "Raiymbek district"), center: N("Нарынкол", "Нарынқол", "Narynkol"),
+    settlements: [S("Нарынкол", "Нарынқол", "Narynkol", 1), S("Жамбыл", "Жамбыл", "Zhambyl"), S("Кайнар", "Қайнар", "Kainar"),
+      S("Какпак", "Қақпақ", "Kakpak"), S("Карасаз", "Қарасаз", "Karasaz"), S("Каратоган", "Қаратоған", "Karatogan"),
+      S("Костобе", "Қостөбе", "Kostobe"), S("Сарыбастау", "Сарыбастау", "Sarybastau"), S("Тегистик", "Тегістік", "Tegistik"),
+      S("Текес", "Текес", "Tekes")] },
+  { id: "uygur", n: N("Уйгурский район", "Ұйғыр ауданы", "Uyghur district"), center: N("Шонжы (Чунджа)", "Шонжы", "Shonzhy (Chundzha)"),
+    settlements: [S("Шонжы (Чунджа)", "Шонжы", "Shonzhy (Chundzha)", 1), S("Таскарасу", "Тасқарасу", "Taskarasu")] }
+];
+OBLAST_DISTRICTS.forEach(r => r.settlements.forEach((s, i) => { s.id = r.id + "_" + i; }));
+const OTHER_SETTLEMENT = "__other__";
+
+function findRaion(id) { return OBLAST_DISTRICTS.find(r => r.id === id); }
+function findSettlement(raionId, sid) { const r = findRaion(raionId); return r ? r.settlements.find(s => s.id === sid) : null; }
+
+/* location: {type:'oblast', raion, settlement|null, custom} */
+function locLabel(loc) {
+  if (!loc) return "";
+  const r = findRaion(loc.raion);
+  const rn = r ? L(r.n) : "";
+  let sn = "";
+  if (loc.settlement) { const s = findSettlement(loc.raion, loc.settlement); sn = s ? L(s.n) : ""; }
+  else if (loc.custom) sn = loc.custom;
+  return sn ? sn + " · " + rn : rn;
+}
+
+let seedIdCounter = 100;
+const nid = () => seedIdCounter++;
+const oblLoc = (raion, settlement) => ({ type: "oblast", raion: raion, settlement: settlement || null, custom: "" });
+
+state.tasks = [
+  { id: nid(), title: N("Почистить фильтр кондиционера", "Кондиционер сүзгісін тазалау", "Clean the air conditioner filter"),
+    category: "master", loc: oblLoc("talgar", "talgar_0"), budget: 6000,
+    description: N("Кондиционер LG не охлаждает. Нужна чистка и диагностика, сегодня-завтра.", "LG кондиционері салқындатпайды. Тазалау және диагностика керек, бүгін-ертең.", "LG air conditioner isn't cooling. Needs cleaning and diagnostics, today or tomorrow."),
+    payment: "cash", isMine: false, status: "open", acceptedBidId: null,
+    bids: [
+      { id: "b1", worker: N("Ерлан", "Ерлан", "Yerlan"), amount: 5000, note: N("Сделаю сегодня вечером", "Бүгін кешке жасаймын", "I'll do it this evening") },
+      { id: "b2", worker: N("Асхат", "Асхат", "Askhat"), amount: 7000, note: N("С гарантией 3 месяца", "3 ай кепілдікпен", "With a 3-month warranty") }
+    ] },
+  { id: nid(), title: N("Перенести холодильник на 4 этаж", "Тоңазытқышты 4-қабатқа көтеру", "Carry a fridge up to the 4th floor"),
+    category: "labor", loc: oblLoc("karasay", "karasay_0"), budget: 8000,
+    description: N("Дом без лифта, 4 этаж. Нужны минимум двое.", "Үйде лифт жоқ, 4-қабат. Кемінде екі адам керек.", "No elevator, 4th floor. At least two people needed."),
+    payment: "cash", isMine: false, status: "open", acceptedBidId: null,
+    bids: [{ id: "b3", worker: N("Бригада Нурлана", "Нұрлан бригадасы", "Nurlan's crew"), amount: 10000, note: N("Вдвоём, аккуратно вынесем", "Екеуміз, абайлап көтереміз", "Two of us, we'll carry it carefully") }] },
+  { id: nid(), title: N("Приготовить ужин на 8 человек", "8 адамға кешкі ас дайындау", "Cook dinner for 8 people"),
+    category: "home", loc: oblLoc("enbek", "enbek_0"), budget: 12000,
+    description: N("Семейный ужин, национальная кухня. Нужна хозяйка на вечер.", "Отбасылық кешкі ас, ұлттық тағам. Кешке асшы әйел керек.", "Family dinner, national cuisine. Need a home cook for the evening."),
+    payment: "cash", isMine: false, status: "open", acceptedBidId: null, bids: [] },
+  { id: nid(), title: N("Репетитор английского для школьника", "Оқушыға ағылшын тілі репетиторы", "English tutor for a schoolkid"),
+    category: "other", loc: oblLoc("iliy", "iliy_0"), budget: 4000,
+    description: N("2 раза в неделю, 7 класс, подготовка к контрольным.", "Аптасына 2 рет, 7-сынып, бақылау жұмыстарына дайындық.", "Twice a week, 7th grade, test preparation."),
+    payment: "cash", isMine: false, status: "open", acceptedBidId: null,
+    bids: [{ id: "b4", worker: N("Айгерим", "Айгерім", "Aigerim"), amount: 3500, note: N("Опыт 5 лет, могу онлайн", "5 жыл тәжірибе, онлайн өткізе аламын", "5 years experience, can do online") }] },
+  { id: nid(), title: N("Сбор яблок на даче", "Саяжайда алма теру", "Apple picking at a dacha"),
+    category: "labor", loc: oblLoc("talgar", "talgar_1"), budget: 5000,
+    description: N("Два дня, оплата за день. Инструмент и тара есть.", "Екі күн, күніне төленеді. Құрал мен ыдыс бар.", "Two days, paid per day. Tools and crates provided."),
+    payment: "cash", isMine: false, status: "open", acceptedBidId: null, bids: [] },
+  { id: nid(), title: N("Побелить дачный домик", "Саяжай үйшігін ақтау", "Whitewash a dacha house"),
+    category: "labor", loc: oblLoc("karasay", "karasay_1"), budget: 9000,
+    description: N("Дом 40 м², материалы заказчика.", "Үй 40 м², материалдар тапсырыс берушіден.", "40 m² house, materials provided by the client."),
+    payment: "cash", isMine: false, status: "open", acceptedBidId: null,
+    bids: [{ id: "b5", worker: N("Женис", "Жеңіс", "Zhenis"), amount: 7500, note: N("Есть свой инструмент", "Өз құралым бар", "I have my own tools") }] }
+];
+
+/* Пятак — живой список тех, кто отметился как доступный прямо сейчас
+   (цифровой аналог стихийной «биржи» разнорабочих). */
+state.pyatak = [
+  { id: "p1", name: N("Ерлан", "Ерлан", "Yerlan"), category: "master", loc: oblLoc("talgar", "talgar_0"), time: "08:14" },
+  { id: "p2", name: N("Гульмира", "Гүлмира", "Gulmira"), category: "home", loc: oblLoc("karasay", "karasay_0"), time: "07:50" },
+  { id: "p3", name: N("Бригада Тимура", "Тимур бригадасы", "Timur's crew"), category: "labor", loc: oblLoc("enbek", "enbek_0"), time: "07:30" },
+  { id: "p4", name: N("Нурлан (Каскелен)", "Нұрлан (Қаскелең)", "Nurlan (Kaskelen)"), category: "labor", loc: oblLoc("karasay", null), time: "07:05" }
+];
+
+/* =====================================================================
+   helpers
+   ===================================================================== */
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function money(n) { return Number(n || 0).toLocaleString(LOCALE[state.lang] || "ru-RU"); }
+function $(id) { return document.getElementById(id); }
+function nowTime() { return new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }); }
+
+function bidsLabel(n) {
+  if (state.lang === "kk") return n + " ұсыныс";
+  if (state.lang === "en") return n === 1 ? "1 bid" : n + " bids";
+  const m10 = n % 10, m100 = n % 100;
+  const w = (m10 === 1 && m100 !== 11) ? "ставка" : (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) ? "ставки" : "ставок";
+  return n + " " + w;
+}
+
+function luhnValid(digits) {
+  if (digits.length !== 16) return false;
+  let sum = 0, alt = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let d = parseInt(digits[i], 10);
+    if (alt) { d *= 2; if (d > 9) d -= 9; }
+    sum += d; alt = !alt;
+  }
+  return sum % 10 === 0;
+}
+function cardNetworkKey(digits) {
+  if (digits.charAt(0) === "4") return "visa";
+  if (/^5[1-5]/.test(digits)) return "mc";
+  if (/^2/.test(digits)) return "mir";
+  return "card";
+}
+function netLabel(k) {
+  if (k === "visa") return "Visa";
+  if (k === "mc") return "Mastercard";
+  if (k === "mir") return state.lang === "en" ? "Mir" : "МИР";
+  return t("netCard");
+}
+function formatCardNumberDigits(d) { return d.replace(/(.{4})/g, "$1 ").trim(); }
+function formatExpiryDigits(d) { return d.length >= 3 ? d.slice(0, 2) + "/" + d.slice(2) : d; }
+
+function iconSvg(name, size) {
+  size = size || 16;
+  const common = 'width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"';
+  const paths = {
+    wrench: '<path d="M21 3a5 5 0 0 0-6.9 6.9L4 20l4 4 10.1-10.1A5 5 0 0 0 21 3Z"/>',
+    hardhat: '<path d="M4 18v-2a8 8 0 0 1 16 0v2"/><path d="M2 18h20"/><path d="M12 8V4"/>',
+    home: '<path d="m3 10 9-7 9 7"/><path d="M5 9v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9"/>',
+    users: '<circle cx="9" cy="8" r="3"/><path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/><circle cx="17" cy="9" r="2.5"/><path d="M22 20c0-2.6-2-4.8-4.7-5.6"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    check: '<path d="m4 12 6 6L20 6"/>',
+    trenddown: '<path d="m3 7 7 7 4-4 7 7"/><path d="M15 17h6v-6"/>',
+    trendup: '<path d="m3 17 7-7 4 4 7-7"/><path d="M15 7h6v6"/>',
+    send: '<path d="m3 3 18 9-18 9 4-9-4-9Z"/>',
+    x: '<path d="m5 5 14 14M19 5 5 19"/>',
+    creditcard: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+    doc: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+    trash: '<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>'
+  };
+  return "<svg " + common + ">" + (paths[name] || "") + "</svg>";
+}
+
+function showFlash(key) {
+  const args = Array.prototype.slice.call(arguments, 1);
+  const msg = t.apply(null, [key].concat(args));
+  const el = $("flashRow");
+  el.innerHTML = '<div class="flash">' + iconSvg("check", 14) + esc(msg) + "</div>";
+  el.style.display = "block";
+  clearTimeout(state.flashTimeout);
+  state.flashTimeout = setTimeout(() => { el.style.display = "none"; el.innerHTML = ""; }, 2200);
+}
+
+/* =====================================================================
+   language switching
+   ===================================================================== */
+function detectLang() {
+  try { const s = localStorage.getItem("qolai_lang"); if (LANGS.indexOf(s) >= 0) return s; } catch (e) {}
+  const nav = (navigator.language || "ru").toLowerCase();
+  if (nav.indexOf("kk") === 0) return "kk";
+  if (nav.indexOf("en") === 0) return "en";
+  return "ru";
+}
+
+function applyStaticI18n() {
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.getAttribute("data-i18n")); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = t(el.getAttribute("data-i18n-ph")); });
+  document.querySelectorAll(".lang-btn").forEach(b => b.classList.toggle("lang-active", b.getAttribute("data-lang") === state.lang));
+}
+
+/* keep what the user already typed in the side panel when the language changes */
+function snapshotSide() {
+  const snap = {};
+  document.querySelectorAll("#sidePanel [id]").forEach(el => { if ("value" in el) snap[el.id] = el.value; });
+  return snap;
+}
+function restoreSide(snap) {
+  const set = id => { const el = $(id); if (el && snap[id] !== undefined) el.value = snap[id]; };
+  ["ntTitle", "ntCategory", "ntBudget", "ntPayment", "ntDescription", "bidWorker", "bidAmount", "bidNote", "pyName", "pyCategory", "pyDistrict"].forEach(set);
+  if ($("ntRaion") && snap.ntRaion !== undefined) {
+    set("ntRaion");
+    populateSettlementOptions($("ntRaion").value);
+    set("ntSettlement"); set("ntCustomSettlement"); onNtSettlementChange();
+  }
+}
+
+function applyLang() {
+  document.documentElement.lang = state.lang;
+  document.title = t("docTitle");
+  const meta = document.querySelector('meta[name="description"]');
+  if (meta) meta.setAttribute("content", t("docDesc"));
+  applyStaticI18n();
+  renderCatRow();
+  renderFeed();
+  renderSidePanel();
+  renderCardList();
+  renderOfferBody();
+  updateCardHeaderButton();
+  updatePyatakBadge();
+  updateCardPreview();
+  $("cardError").textContent = "";
+}
+
+function setLang(l) {
+  if (LANGS.indexOf(l) < 0 || l === state.lang) return;
+  const snap = snapshotSide();
+  state.lang = l;
+  try { localStorage.setItem("qolai_lang", l); } catch (e) {}
+  applyLang();
+  restoreSide(snap);
+}
+
+/* =====================================================================
+   header controls
+   ===================================================================== */
+function updatePyatakBadge() {
+  const count = state.pyatak.filter(p => p.loc.type === state.region).length;
+  $("pyatakBadge").textContent = "🪙 " + t("pyBadge", count);
+}
+
+function setMode(m) {
+  state.mode = m; state.selectedId = null;
+  $("modeClientBtn").classList.toggle("mode-active", m === "client");
+  $("modeWorkerBtn").classList.toggle("mode-active", m === "worker");
+  renderFeed(); renderSidePanel();
+}
+
+function updateCardHeaderButton() {
+  $("cardHeaderIcon").innerHTML = iconSvg("creditcard", 15);
+  const label = $("cardHeaderLabel");
+  if (state.cards.length > 0) {
+    const c = state.cards.find(x => x.id === state.defaultCardId) || state.cards[0];
+    label.textContent = "•••• " + c.last4;
+  } else {
+    label.textContent = t("cardLink");
+  }
+}
+
+/* =====================================================================
+    public offer modal
+    ===================================================================== */
+function renderOfferBody() {
+  const box = $("offerBodyBox");
+  if (!box) return;
+  box.innerHTML = ["offerP1", "offerP2", "offerP3", "offerP4"].map((k, i) =>
+    "<p" + (k === "offerP2" ? ' class="offer-commission"' : "") + ">" + esc(t(k)) + "</p>"
+  ).join("");
+}
+function openOfferModal() {
+  $("offerModalCloseBtn").innerHTML = iconSvg("x", 18);
+  renderOfferBody();
+  $("offerModalOverlay").style.display = "flex";
+}
+function closeOfferModal() {
+  $("offerModalOverlay").style.display = "none";
+}
+
+/* =====================================================================
+   category row + feed
+   ===================================================================== */
+function renderCatRow() {
+  const all = [{ id: "all", label: N(t("catAll"), t("catAll"), t("catAll")), icon: "users" }].concat(CATEGORIES);
+  $("catRow").innerHTML = all.map(c => {
+    const active = state.catFilter === c.id;
+    return '<button class="pill' + (active ? " pill-active" : "") + '" onclick="setCatFilter(\'' + c.id + '\')">' +
+      iconSvg(c.icon, 14) + "<span>" + esc(L(c.label)) + "</span></button>";
+  }).join("");
+}
+function setCatFilter(id) {
+  state.catFilter = id; renderCatRow(); renderFeed();
+  if (!state.selectedId && state.mode === "client") renderSidePanel();
+}
+
+function renderFeed() {
+  const list = state.tasks
+    .filter(x => x.loc.type === state.region)
+    .filter(x => state.catFilter === "all" || x.category === state.catFilter);
+  const container = $("feed");
+  if (list.length === 0) { container.innerHTML = '<div class="empty-msg">' + esc(t("emptyFeed")) + "</div>"; return; }
+  container.innerHTML = list.map(x => {
+    const cat = CATEGORIES.find(c => c.id === x.category);
+    const amounts = x.bids.map(b => b.amount);
+    const min = amounts.length ? Math.min.apply(null, amounts) : null;
+    const max = amounts.length ? Math.max.apply(null, amounts) : null;
+    const isSel = state.selectedId === x.id;
+    return '<div class="task-card' + (isSel ? " task-card-sel" : "") + '" onclick="selectTask(' + x.id + ')">' +
+      '<div class="task-card-top">' +
+        '<div class="task-card-main">' +
+          '<div class="task-card-meta">' + iconSvg(cat ? cat.icon : "users", 14) +
+            "<span>" + esc(catLabel(x.category)) + " · " + esc(locLabel(x.loc)) + "</span>" +
+            (x.isMine ? '<span class="tag tag-slate">' + esc(t("tagMine")) + "</span>" : "") +
+            (x.status === "closed" ? '<span class="tag tag-green">' + esc(t("tagClosed")) + "</span>" : "") +
+          "</div>" +
+          '<div class="task-card-title">' + esc(L(x.title)) + "</div>" +
+        "</div>" +
+        '<div class="task-card-price">' +
+          '<div class="price-mono">' + money(x.budget) + " ₸</div>" +
+          (min !== null ? '<div class="bids-hint">' + esc(bidsLabel(x.bids.length)) + ": " + money(min) + "–" + money(max) + " ₸</div>" : "") +
+        "</div>" +
+      "</div>" +
+    "</div>";
+  }).join("");
+}
+
+function selectTask(id) { state.selectedId = id; renderFeed(); renderSidePanel(); }
+function deselectTask() { state.selectedId = null; renderFeed(); renderSidePanel(); }
+
+/* =====================================================================
+   side panel
+   ===================================================================== */
+function renderSidePanel() {
+  const box = $("sidePanel");
+  if (!state.selectedId) {
+    if (state.mode === "client") {
+      box.innerHTML = '<div class="panel-inner">' + buildPyatakWidgetHtml() + '<div class="divider"></div>' + buildPostFormInner() + "</div>";
+      initPostForm();
+    } else {
+      box.innerHTML = '<div class="panel-inner"><div class="panel-hint">' +
+        '<div class="panel-title" style="color:var(--ink); margin-bottom:6px">' + esc(t("selectTaskTitle")) + "</div>" +
+        esc(t("selectTaskText")) + "</div>" + buildWorkerPyatakBoxHtml() + "</div>";
+    }
+    return;
+  }
+  const x = state.tasks.find(y => y.id === state.selectedId);
+  if (!x) { state.selectedId = null; renderSidePanel(); return; }
+
+  let paymentLabel = t("payCash");
+  if (x.payment !== "cash") {
+    const pc = state.cards.find(c => c.id === x.payment);
+    if (pc) paymentLabel = netLabel(pc.net) + " •••• " + pc.last4;
+  }
+
+  let bodyHtml;
+  if (x.isMine) {
+    let bidsHtml;
+    if (x.bids.length === 0) bidsHtml = '<div class="muted">' + esc(t("noBids")) + "</div>";
+    else bidsHtml = '<div class="bids-list">' + x.bids.map(b => {
+      const diff = b.amount - x.budget;
+      const deltaHtml = diff === 0
+        ? '<span class="delta delta-neutral">' + esc(t("atBudget")) + "</span>"
+        : '<span class="delta ' + (diff < 0 ? "delta-good" : "delta-bad") + '">' + iconSvg(diff < 0 ? "trenddown" : "trendup", 12) + (diff < 0 ? "−" : "+") + money(Math.abs(diff)) + " ₸</span>";
+      const accepted = x.acceptedBidId === b.id;
+      const actionHtml = !x.acceptedBidId
+        ? '<button class="btn-small" onclick="acceptBid(\'' + b.id + '\')">' + esc(t("accept")) + "</button>"
+        : (accepted ? '<span class="accepted-mark">' + esc(t("selected")) + "</span>" : "");
+      const note = L(b.note);
+      return '<div class="bid-row' + (accepted ? " bid-accepted" : "") + '">' +
+        '<div class="bid-row-top"><span class="bid-worker">' + esc(L(b.worker)) + "</span>" + deltaHtml + "</div>" +
+        '<div class="bid-amount">' + money(b.amount) + " ₸</div>" +
+        (note ? '<div class="bid-note">' + esc(note) + "</div>" : "") + actionHtml +
+      "</div>";
+    }).join("") + "</div>";
+    bodyHtml = '<div class="bids-title">' + esc(t("bidsTitle", x.bids.length)) + "</div>" + bidsHtml;
+  } else {
+    bodyHtml = '<div class="bids-title">' + esc(t("yourResponse")) + "</div>" +
+      '<div class="form-col">' +
+        '<div><label class="label">' + esc(t("yourName")) + '</label><input id="bidWorker" class="input" placeholder="' + esc(t("namePh")) + '"></div>' +
+        "<div>" +
+          '<label class="label">' + esc(t("yourPrice")) + "</label>" +
+          '<input id="bidAmount" type="number" class="input mono" placeholder="' + x.budget + '">' +
+          '<div class="quick-row">' +
+            '<button class="chip-btn" onclick="setBidAmount(' + x.budget + ')">' + esc(t("okWith", money(x.budget))) + "</button>" +
+            '<button class="chip-btn" onclick="setBidAmount(' + Math.round(x.budget * 0.85) + ')">' + esc(t("cheaper15")) + "</button>" +
+          "</div>" +
+        "</div>" +
+        '<div><label class="label">' + esc(t("commentOpt")) + '</label><textarea id="bidNote" class="input textarea" placeholder="' + esc(t("commentPh")) + '"></textarea></div>' +
+        '<button class="btn-amber" onclick="submitBid()">' + iconSvg("send", 14) + " " + esc(t("sendBid")) + "</button>" +
+      "</div>";
+  }
+
+  box.innerHTML = '<div class="panel-inner">' +
+    '<div class="detail-top">' +
+      '<div class="panel-title" style="margin-bottom:6px">' + esc(L(x.title)) + "</div>" +
+      '<button class="icon-btn" onclick="deselectTask()">' + iconSvg("x", 16) + "</button>" +
+    "</div>" +
+    '<div class="detail-sub">' + esc(locLabel(x.loc)) + " · " + esc(L(x.description) || t("noDesc")) + "</div>" +
+    '<div class="detail-budget">' + esc(t("budget")) + " " + money(x.budget) + " ₸</div>" +
+    '<div class="detail-payment">' + iconSvg("creditcard", 12) + " " + esc(t("payment")) + " " + esc(paymentLabel) + "</div>" +
+    bodyHtml +
+  "</div>";
+}
+
+function setBidAmount(v) { $("bidAmount").value = v; }
+
+function submitBid() {
+  const x = state.tasks.find(y => y.id === state.selectedId);
+  if (!x) return;
+  const worker = $("bidWorker").value.trim();
+  const amount = $("bidAmount").value;
+  if (!worker || !amount) { showFlash("flashNeedNamePrice"); return; }
+  x.bids.push({ id: "b" + Date.now(), worker: worker, amount: Number(amount), note: $("bidNote").value.trim(), time: nowTime() });
+  $("bidWorker").value = ""; $("bidAmount").value = ""; $("bidNote").value = "";
+  renderFeed();
+  showFlash("flashBidSent");
+}
+
+function acceptBid(bidId) {
+  const x = state.tasks.find(y => y.id === state.selectedId);
+  if (!x) return;
+  x.acceptedBidId = bidId; x.status = "closed";
+  renderFeed(); renderSidePanel();
+  showFlash("flashAccepted");
+}
+
+/* =====================================================================
+   post-task form
+   ===================================================================== */
+function optionsHtml(items, labelFn) {
+  return items.map(i => '<option value="' + esc(i.id) + '">' + esc(labelFn(i)) + "</option>").join("");
+}
+function paymentOptionsHtml() {
+  return '<option value="cash">' + esc(t("payCash")) + "</option>" +
+    state.cards.map(c => '<option value="' + c.id + '">' + esc(netLabel(c.net)) + " •••• " + c.last4 + "</option>").join("") +
+    '<option value="__add__">' + esc(t("payAdd")) + "</option>";
+}
+
+function buildPostFormInner() {
+  const raionOptions = optionsHtml(OBLAST_DISTRICTS, r => L(r.n) + " (" + t("centerShort", L(r.center)) + ")");
+  const categoryOptions = optionsHtml(CATEGORIES, c => L(c.label));
+  return '<div class="panel-title">' + iconSvg("plus", 16) + " " + esc(t("postTitle")) + "</div>" +
+    '<div class="panel-sub">' + esc(t("postSub")) + "</div>" +
+    '<div class="form-col">' +
+      '<div><label class="label">' + esc(t("whatToDo")) + '</label><input id="ntTitle" class="input" placeholder="' + esc(t("whatToDoPh")) + '"></div>' +
+      '<div><label class="label">' + esc(t("category")) + '</label><select id="ntCategory" class="input">' + categoryOptions + "</select></div>" +
+      '<div><label class="label">' + esc(t("oblastDistrict")) + '</label><select id="ntRaion" class="input" onchange="onNtRaionChange()">' + raionOptions + "</select></div>" +
+      '<div style="margin-top:10px">' +
+        '<label class="label">' + esc(t("settlement")) + '</label>' +
+        '<select id="ntSettlement" class="input" onchange="onNtSettlementChange()"></select>' +
+        '<input id="ntCustomSettlement" class="input" style="margin-top:6px; display:none" placeholder="' + esc(t("otherPh")) + '">' +
+      "</div>" +
+      '<div><label class="label">' + esc(t("yourPrice")) + '</label><input id="ntBudget" type="number" class="input mono" placeholder="8000"></div>' +
+      '<div><label class="label">' + esc(t("payMethod")) + '</label><select id="ntPayment" class="input" onchange="onNtPaymentChange()">' + paymentOptionsHtml() + "</select></div>" +
+      '<div><label class="label">' + esc(t("details")) + '</label><textarea id="ntDescription" class="input textarea" placeholder="' + esc(t("detailsPh")) + '"></textarea></div>' +
+      '<button class="btn-primary" onclick="submitTask()">' + esc(t("postBtn")) + "</button>" +
+    "</div>";
+}
+
+function initPostForm() { populateSettlementOptions(OBLAST_DISTRICTS[0].id); }
+
+function populateSettlementOptions(raionId) {
+  const r = findRaion(raionId);
+  const sel = $("ntSettlement");
+  if (!sel || !r) return;
+  sel.innerHTML = r.settlements.map(s =>
+    '<option value="' + s.id + '">' + esc(L(s.n) + (s.center ? " (" + t("centerWord") + ")" : "")) + "</option>"
+  ).join("") + '<option value="' + OTHER_SETTLEMENT + '">' + esc(t("otherSpecify")) + "</option>";
+}
+function onNtRaionChange() {
+  populateSettlementOptions($("ntRaion").value);
+  $("ntCustomSettlement").style.display = "none";
+}
+function onNtSettlementChange() {
+  $("ntCustomSettlement").style.display = $("ntSettlement").value === OTHER_SETTLEMENT ? "block" : "none";
+}
+function onNtPaymentChange() {
+  const sel = $("ntPayment");
+  if (sel.value === "__add__") { sel.value = "cash"; openCardModal(); }
+}
+
+function submitTask() {
+  const title = $("ntTitle").value.trim();
+  const budget = $("ntBudget").value;
+  if (!title || !budget) { showFlash("flashNeedTitlePrice"); return; }
+  const raion = $("ntRaion").value;
+  const sv = $("ntSettlement").value;
+  let loc;
+  if (sv === OTHER_SETTLEMENT) {
+    const custom = $("ntCustomSettlement").value.trim();
+    if (!custom) { showFlash("flashNeedSettlement"); return; }
+    loc = { type: "oblast", raion: raion, settlement: null, custom: custom };
+  } else {
+    loc = { type: "oblast", raion: raion, settlement: sv, custom: "" };
+  }
+  const task = {
+    id: Date.now(), title: title, category: $("ntCategory").value, loc: loc, budget: Number(budget),
+    description: $("ntDescription").value.trim(), payment: $("ntPayment").value,
+    isMine: true, status: "open", acceptedBidId: null, bids: []
+  };
+  state.tasks.unshift(task);
+  state.selectedId = task.id;
+  renderFeed(); renderSidePanel(); updatePyatakBadge();
+  showFlash("flashTaskPosted");
+}
+
+/* =====================================================================
+   Пятак
+   ===================================================================== */
+function buildPyatakWidgetHtml() {
+  const list = state.pyatak
+    .filter(p => p.loc.type === state.region)
+    .filter(p => state.catFilter === "all" || p.category === state.catFilter);
+  const rows = list.length === 0
+    ? '<div class="muted">' + esc(t("pyNobody")) + "</div>"
+    : list.map(p =>
+        '<div class="pyatak-row">' +
+          '<div class="pyatak-row-main">' +
+            '<div class="pyatak-name">' + esc(L(p.name)) + "</div>" +
+            '<div class="pyatak-meta">' + esc(catLabel(p.category)) + " · " + esc(locLabel(p.loc)) + " · " + esc(t("pySince", p.time)) + "</div>" +
+          "</div>" +
+          '<button class="chip-btn" onclick="callFromPyatak(\'' + p.id + '\')">' + esc(t("pyCall")) + "</button>" +
+        "</div>").join("");
+  return '<div class="pyatak-widget">' +
+    '<div class="panel-title" style="font-size:15px; margin-bottom:2px">🪙 ' + esc(t("pyWidgetTitle", list.length)) + "</div>" +
+    '<div class="panel-sub" style="margin-bottom:0">' + esc(t("pyWidgetSub")) + "</div>" +
+    '<div class="pyatak-list">' + rows + "</div>" +
+  "</div>";
+}
+
+function buildWorkerPyatakBoxHtml() {
+  if (state.myPyatakId) {
+    const mine = state.pyatak.find(p => p.id === state.myPyatakId);
+    return '<div class="pyatak-box">' +
+      '<div class="panel-title" style="margin-bottom:6px">🪙 ' + esc(t("pyBoxTitle")) + "</div>" +
+      '<div class="pyatak-status">' + esc(t("pyStatus", mine ? catLabel(mine.category) : "", mine ? locLabel(mine.loc) : "", mine ? mine.time : "")) + "</div>" +
+      '<button class="btn-small" onclick="leavePyatak()">' + esc(t("pyLeave")) + "</button>" +
+    "</div>";
+  }
+  const districtOptionsHtml = optionsHtml(OBLAST_DISTRICTS, r => L(r.n));
+  return '<div class="pyatak-box">' +
+    '<div class="panel-title" style="margin-bottom:2px">🪙 ' + esc(t("pyBoxTitle")) + "</div>" +
+    '<div class="panel-sub">' + esc(t("pyBoxSub")) + "</div>" +
+    '<div class="form-col">' +
+      '<div><label class="label">' + esc(t("yourName")) + '</label><input id="pyName" class="input" placeholder="' + esc(t("namePh")) + '"></div>' +
+      '<div><label class="label">' + esc(t("category")) + '</label><select id="pyCategory" class="input">' + optionsHtml(CATEGORIES, c => L(c.label)) + "</select></div>" +
+      '<div><label class="label">' + esc(t("pyDistrictOblast")) + '</label><select id="pyDistrict" class="input">' + districtOptionsHtml + "</select></div>" +
+      '<button class="btn-primary" onclick="joinPyatak()">' + esc(t("pyJoin")) + "</button>" +
+    "</div>" +
+  "</div>";
+}
+
+function joinPyatak() {
+  const name = $("pyName").value.trim();
+  if (!name) { showFlash("flashNeedName"); return; }
+  const did = $("pyDistrict").value;
+  const entry = {
+    id: "p" + Date.now(), name: name, category: $("pyCategory").value,
+    loc: oblLoc(did, null), time: nowTime()
+  };
+  state.pyatak.unshift(entry);
+  state.myPyatakId = entry.id;
+  renderSidePanel(); updatePyatakBadge();
+  showFlash("flashPyIn");
+}
+
+function leavePyatak() {
+  state.pyatak = state.pyatak.filter(p => p.id !== state.myPyatakId);
+  state.myPyatakId = null;
+  renderSidePanel(); updatePyatakBadge();
+  showFlash("flashPyOut");
+}
+
+function callFromPyatak(id) {
+  const p = state.pyatak.find(x => x.id === id);
+  if (!p) return;
+  setMode("client");
+  $("ntTitle").value = t("pyUrgent", L(p.name));
+  $("ntCategory").value = p.category;
+  $("ntRaion").value = p.loc.raion;
+  populateSettlementOptions(p.loc.raion);
+  showFlash("flashPrefilled", L(p.name));
+}
+
+/* =====================================================================
+   card modal
+   ===================================================================== */
+function openCardModal() {
+  $("cardModalCloseBtn").innerHTML = iconSvg("x", 18);
+  $("cardModalOverlay").style.display = "flex";
+  renderCardList();
+  updateCardPreview();
+}
+function closeCardModal() {
+  $("cardModalOverlay").style.display = "none";
+  $("cardError").textContent = "";
+}
+
+function updateCardPreview() {
+  const digits = $("cardNumber").value.replace(/\D/g, "").slice(0, 16);
+  $("previewNumber").textContent = digits ? formatCardNumberDigits(digits) : "•••• •••• •••• ••••";
+  $("previewExpiry").textContent = $("cardExpiry").value || t("previewExpiry");
+  $("previewName").textContent = $("cardName").value || t("previewName");
+}
+function onCardNumberInput() {
+  const el = $("cardNumber");
+  el.value = formatCardNumberDigits(el.value.replace(/\D/g, "").slice(0, 16));
+  updateCardPreview();
+}
+function onCardExpiryInput() {
+  const el = $("cardExpiry");
+  el.value = formatExpiryDigits(el.value.replace(/\D/g, "").slice(0, 4));
+  updateCardPreview();
+}
+function onCardCvcInput() {
+  const el = $("cardCvc");
+  el.value = el.value.replace(/\D/g, "").slice(0, 3);
+}
+
+function renderCardList() {
+  const box = $("cardListBox");
+  if (state.cards.length === 0) { box.innerHTML = ""; return; }
+  box.innerHTML = '<div class="card-list">' + state.cards.map(c =>
+    '<div class="card-row">' +
+      '<button class="card-row-main" onclick="setDefaultCard(\'' + c.id + '\')">' +
+        iconSvg("creditcard", 16) +
+        "<div>" +
+          '<div class="card-row-title">' + esc(netLabel(c.net)) + " •••• " + c.last4 +
+            (state.defaultCardId === c.id ? ' <span class="default-tag">· ' + esc(t("defaultTag")) + "</span>" : "") + "</div>" +
+          '<div class="card-row-sub">' + esc(c.name) + " · " + esc(t("validUntil", c.expiry)) + "</div>" +
+        "</div>" +
+      "</button>" +
+      '<button class="icon-btn danger" onclick="removeCard(\'' + c.id + '\')">' + iconSvg("trash", 15) + "</button>" +
+    "</div>").join("") + "</div>";
+}
+
+function setDefaultCard(id) { state.defaultCardId = id; renderCardList(); updateCardHeaderButton(); }
+
+function refreshPaymentSelectIfPresent(selectId) {
+  const sel = $("ntPayment");
+  if (!sel) return;
+  const was = sel.value;
+  sel.innerHTML = paymentOptionsHtml();
+  if (selectId) sel.value = selectId;
+  else sel.value = state.cards.some(c => c.id === was) ? was : "cash";
+}
+
+function addCard() {
+  const err = $("cardError");
+  err.textContent = "";
+  const digits = $("cardNumber").value.replace(/\D/g, "");
+  if (digits.length !== 16 || !luhnValid(digits)) { err.textContent = t("errNumber"); return; }
+  const expiry = $("cardExpiry").value;
+  const parts = expiry.split("/");
+  const mm = parts[0], yy = parts[1];
+  if (!mm || !yy || mm.length !== 2 || yy.length !== 2 || Number(mm) < 1 || Number(mm) > 12) { err.textContent = t("errExpiry"); return; }
+  if ($("cardCvc").value.length !== 3) { err.textContent = t("errCvc"); return; }
+  const name = $("cardName").value.trim();
+  if (!name) { err.textContent = t("errName"); return; }
+
+  const card = { id: "c" + Date.now(), last4: digits.slice(-4), net: cardNetworkKey(digits), expiry: expiry, name: name };
+  state.cards.push(card);
+  if (!state.defaultCardId) state.defaultCardId = card.id;
+
+  ["cardNumber", "cardExpiry", "cardCvc", "cardName"].forEach(id => { $(id).value = ""; });
+  updateCardPreview();
+  closeCardModal();
+  updateCardHeaderButton();
+  refreshPaymentSelectIfPresent(card.id);
+  showFlash("flashCardLinked");
+}
+
+function removeCard(id) {
+  state.cards = state.cards.filter(c => c.id !== id);
+  if (state.defaultCardId === id) state.defaultCardId = state.cards.length ? state.cards[0].id : null;
+  renderCardList();
+  updateCardHeaderButton();
+  refreshPaymentSelectIfPresent(null);
+}
+
+/* =====================================================================
+   init
+   ===================================================================== */
+function init() {
+  state.lang = detectLang();
+  $("offerHeaderIcon").innerHTML = iconSvg("doc", 15);
+  applyLang();
+}
+init();
+</script>
+</body>
+</html>
